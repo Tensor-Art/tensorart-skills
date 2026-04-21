@@ -6,7 +6,11 @@ import sys
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
 
-BASE_URL = "https://openapi.tensor.art/openworks/v1"
+API_HOSTS = {
+    "ak_tusi": "https://openapi.tusiart.cn/openworks/v1",
+    "ak_tensor": "https://openapi.tensor.art/openworks/v1",
+}
+DEFAULT_BASE_URL = "https://openapi.tensor.art/openworks/v1"
 
 
 def get_access_key() -> str:
@@ -24,10 +28,17 @@ def get_access_key() -> str:
     return key
 
 
+def _get_base_url(access_key: str) -> str:
+    for prefix, url in API_HOSTS.items():
+        if access_key.startswith(prefix):
+            return url
+    return DEFAULT_BASE_URL
+
+
 def api_post(path: str, data: dict, access_key: str | None = None) -> dict:
     if access_key is None:
         access_key = get_access_key()
-    url = f"{BASE_URL}/{path}"
+    url = f"{_get_base_url(access_key)}/{path}"
     body = json.dumps(data).encode()
     req = Request(url, data=body, method="POST", headers={
         "Content-Type": "application/json",
